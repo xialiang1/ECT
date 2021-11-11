@@ -77,39 +77,19 @@ void init_key(void)  //初始化按键
 
 void Output_Compare()   //初始化输出比较
 {                      
-  ECT_TSCR1_TFFCA=1;
-  ECT_TSCR1_TEN=1;
-  ECT_TIOS=0xff;
-  ECT_TCTL1=0x00;
-  ECT_TCTL2=0x00;
-  ECT_TIE=0x00;
-  ECT_TSCR2=0x07;
-  ECT_TFLG1=0xff;
-  ECT_TFLG2=0xff;
-}
-
-
-void Input_Capture()   //初始化输入捕捉
-{  
-  ECT_TSCR1_TFFCA=1;
-  ECT_TSCR1_TEN=1;
-  ECT_TIOS=0x00;
-  ECT_TCTL1=0x00;
-  ECT_TCTL2=0x00;
-  ECT_TIE=0x00;
-  ECT_TSCR2=0xc7;
-  ECT_TFLG1=0xff;
-  ECT_TFLG2=0xff;
+  TSCR1_TFFCA=1;
+  TSCR1_TEN=1;
+  TIOS=0xff;
+  TCTL1=0x00;
+  TCTL2=0x00;
+  TIE=0x00;
+  TSCR2=0x07;
+  TFLG1=0xff;
+  TFLG2=0xff;
 }
 
 
 
-void INIT_MDC()     //初始化模数递减
-{
-  ECT_MCCTL=0xc7;
-  ECT_MCCNT=50000;
-  ECT_MCCTL_FLMC=1;
-}
   
 
 
@@ -151,15 +131,6 @@ void clock1()//设置ECT递加时间为1s;
 
 
 
-void clock2()  // 设置ECT递减时间为1s;
-{
-  Input_Capture()
-  unsigned int i,j;
-  for(i=0;i<40;i++){
-     INIT_MDC();
-  } 
-}
-
 
 
 
@@ -170,33 +141,65 @@ void delay()   //延时函数
  }
  
  
-void  time_jia()
+void  time_jia()    //时间增加
 {
   unsigned int i=0,j=0,k=0;
   clock1();
   if(ECT_TFLG1_C0F==1){
-  i=i+1;
-  CONT4=1;
-  DATA=shuma[i];
-  delay();
-  if(i>9){
-  j=j+1;
-  i=0;
-  CONT4=0;
-  CONT3=1;
-  DATA= shuma[j];
-  delay();
-  }
-  if(j>6){
-    j=0;
-    if(k==2)break;// 数码管在2分钟时停止
-    k=k+1;
-    CONT4=0;
-    CONT3=0;
+   CONT2=1;
+   CONT3=0;
+   CONT4=0;
+   DATA=shuma[i];
+   delay();
+   CONT2=0;
+   CONT3=1;
+   CONT4=0;
+   DATA=shuma[j];
+   delay();
+   CONT2=0;
+   CONT3=0;
+   CONT4=1;
+   DATA=shuma[k];
+   delay();
+   i=i+1;
+   if(i>9){
+    j=j+1;
+    i=0;
     CONT2=1;
+    CONT3=0;
+    CONT4=0;
+    DATA=shuma[i];
+    delay();
+    CONT2=0;
+    CONT3=1;
+    CONT4=0;
+    DATA=shuma[j];
+    delay();
+    CONT2=0;
+    CONT3=0;
+    CONT4=1;
     DATA=shuma[k];
     delay();
-  }
+   }
+   if(j>6){
+    k=k+1;
+    j=0;
+    CONT2=1;
+    CONT3=0;
+    CONT4=0;
+    DATA=shuma[i];
+    delay();
+    CONT2=0;
+    CONT3=1;
+    CONT4=0;
+    DATA=shuma[j];
+    delay();
+    CONT2=0;
+    CONT3=0;
+    CONT4=1;
+    DATA=shuma[k];
+    delay();
+   }
   if(k==1){
     LED=0x7f;
   }
@@ -208,14 +211,12 @@ void  time_jia()
  
  
   
-void time_jian()
+void time_jian()       //时间减少
 {
-  unsigned int i=10,j=6,k=2;
+  unsigned int i=10,j=5,k=1;
   clock2();
   if(ECT_TFLG1_C0F==1){
-    i=i-1;
-    j=j-1;
-    k=k-1;
+     i=i-1;
     CONT2=1;
     CONT3=0;
     CONT4=0;
@@ -230,6 +231,50 @@ void time_jian()
     CONT3=0;
     CONT4=1;
     DATA=shuma[i];
+    delay();
+    if(i<1){
+      i=9;
+      j=j-1;
+      CONT2=1;
+      CONT3=0;
+      CONT4=0;
+      DATA=shuma[k];
+      delay();
+      CONT2=0;
+      CONT3=1;
+      CONT4=0;
+      DATA=shuma[j];
+      delay();
+      CONT2=0;
+      CONT3=0;
+      CONT4=1;
+      DATA=shuma[i];
+      delay();
+    }
+    if(j<1){
+      j=5
+      k=k-1;  
+      CONT2=1;
+      CONT3=0;
+      CONT4=0;
+      DATA=shuma[k];
+      delay();
+      CONT2=0;
+      CONT3=1;
+      CONT4=0;
+      DATA=shuma[j];
+      delay();
+      CONT2=0;
+      CONT3=0;
+      CONT4=1;
+      DATA=shuma[i];
+      delay();
+    }
+    if(k==0&&j==0&&i==0){
+    BUZZ=1;
+    } 
+  }
+}
  
     
   
@@ -248,8 +293,5 @@ DisableInterrupts;
  }
   
     
-    
-  
- 
 
 
