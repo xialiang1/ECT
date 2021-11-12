@@ -1,7 +1,16 @@
+---------------------------------------------------*/
+/************************************************************
+飞翔科技MC9S12XS128汽车电子开发板
+E-mail: 2008f.d@163.com
+淘宝店：http://fxfreefly.taobao.com
+************************************************************/
+/*---------------------------------------------------------*/
 #include <hidef.h>      /* common defines and macros */
 #include "derivative.h"      /* derivative-specific definitions */
 #define LED_dir DDRB
 #define LED PORTB
+#define BUZZ PORTK_PK5
+#define BUZZ_dir DDRK_DDRK5
 #define KEY1 PTIH_PTIH3
 #define KEY2 PTIH_PTIH2
 #define KEY3 PTIH_PTIH1
@@ -90,42 +99,17 @@ void Output_Compare()   //初始化输出比较
 
 
 
-  
 
 
-#pragma CODE_SEG __NEAR_SEG NON_BANKED
-interrupt void PTH_inter(void) 
+
+
+void clock1()//设置ECT时间间隔为1s;
 {
-   if(PIFH != 0) //判断中断标志    
-   {
-      PIFH = 0xff;//清除中断标志     
-      if(KEY1 == 0)         
-      {
-         time_jia();
-      }
-      if(KEY2 == 0) 
-      {
-          time+=1;
-          if(time>10)
-              time=10;
-      }
-      if(KEY3 == 0)
-          direction=0;
-      if(KEY4 == 0)
-          direction=1;
-   }
-}
-#pragma CODE_SEG DEFAULT
-
-
-
-
-void clock1()//设置ECT递加时间为1s;
-{
-  Output_Compare();
   unsigned int i,j;
-  for(i=0;i<32;i++){
-    ECT_TC0=ECT_TCNT+31250;
+  Output_Compare();
+  for(i=0;i<32;i++)
+  {
+    TC0=TCNT+31250;
   } 
 }
 
@@ -145,11 +129,11 @@ void  time_jia()    //时间增加
 {
   unsigned int i=0,j=0,k=0;
   clock1();
-  if(ECT_TFLG1_C0F==1){
+  if(TFLG1_C0F==1){
    CONT2=1;
    CONT3=0;
    CONT4=0;
-   DATA=shuma[i];
+   DATA=shuma[k];
    delay();
    CONT2=0;
    CONT3=1;
@@ -159,7 +143,7 @@ void  time_jia()    //时间增加
    CONT2=0;
    CONT3=0;
    CONT4=1;
-   DATA=shuma[k];
+   DATA=shuma[i];
    delay();
    i=i+1;
    if(i>9){
@@ -168,7 +152,7 @@ void  time_jia()    //时间增加
     CONT2=1;
     CONT3=0;
     CONT4=0;
-    DATA=shuma[i];
+    DATA=shuma[k];
     delay();
     CONT2=0;
     CONT3=1;
@@ -178,7 +162,7 @@ void  time_jia()    //时间增加
     CONT2=0;
     CONT3=0;
     CONT4=1;
-    DATA=shuma[k];
+    DATA=shuma[i];
     delay();
    }
    if(j>6){
@@ -187,7 +171,7 @@ void  time_jia()    //时间增加
     CONT2=1;
     CONT3=0;
     CONT4=0;
-    DATA=shuma[i];
+    DATA=shuma[k];
     delay();
     CONT2=0;
     CONT3=1;
@@ -197,7 +181,7 @@ void  time_jia()    //时间增加
     CONT2=0;
     CONT3=0;
     CONT4=1;
-    DATA=shuma[k];
+    DATA=shuma[i];
     delay();
    }
   if(k==1){
@@ -207,16 +191,19 @@ void  time_jia()    //时间增加
     LED=0x3f;
   } 
  }
- 
+}
  
  
   
-void time_jian()       //时间减少
-{
-  unsigned int i=10,j=5,k=1;
-  clock2();
-  if(ECT_TFLG1_C0F==1){
-     i=i-1;
+void time_jian(){      //时间减少
+  unsigned int i,j,k;
+  i=10;
+  j=5;
+  k=1;
+  clock1();
+  if(TFLG1_C0F==1)
+  {
+    i=i-1;
     CONT2=1;
     CONT3=0;
     CONT4=0;
@@ -252,7 +239,7 @@ void time_jian()       //时间减少
       delay();
     }
     if(j<1){
-      j=5
+      j=5;
       k=k-1;  
       CONT2=1;
       CONT3=0;
@@ -275,8 +262,149 @@ void time_jian()       //时间减少
     } 
   }
 }
+
+
+
  
-    
+#pragma CODE_SEG __NEAR_SEG NON_BANKED
+interrupt void PTH_inter(void) 
+{
+    unsigned int i,j,k;
+   if(PIFH != 0) //判断中断标志    
+   {
+      PIFH = 0xff;//清除中断标志     
+      if(KEY1 == 0)         
+      {
+         time_jia();
+      }
+      if(KEY2 == 0) 
+      {
+       time_jian();
+      }
+      if(KEY3 == 0) {
+         i=i+1;
+         CONT2=1;
+         CONT3=0;
+         CONT4=0;
+         DATA=shuma[k];
+         CONT2=0;
+         CONT3=1;
+         CONT4=0;
+         DATA=shuma[j];
+         CONT2=0;
+         CONT3=0;
+         CONT4=1;
+         DATA=shuma[i];
+          if(i>9){
+          j=j+1;
+          i=0;
+          CONT2=1;
+          CONT3=0;
+          CONT4=0;
+          DATA=shuma[k];
+          delay();
+          CONT2=0;
+          CONT3=1;
+          CONT4=0;
+          DATA=shuma[j];
+          delay();
+          CONT2=0;
+          CONT3=0;
+          CONT4=1;
+          DATA=shuma[i];
+          delay();
+          }
+          if(j>6){
+          k=k+1;
+          j=0;
+          CONT2=1;
+          CONT3=0;
+          CONT4=0;
+          DATA=shuma[k];
+          delay();
+          CONT2=0;
+          CONT3=1;
+          CONT4=0;
+          DATA=shuma[j];
+          delay();
+          CONT2=0;
+          CONT3=0;
+          CONT4=1;
+          DATA=shuma[i];
+          delay();
+          }
+          if(k==1){
+           LED=0x7f;
+          }
+          if(k==2){
+           LED=0x3f;
+          }
+      }
+          
+      if(KEY4 == 0){
+        i=i-1;
+        CONT2=1;
+        CONT3=0;
+        CONT4=0;
+        DATA=shuma[k];
+        delay();
+        CONT2=0;
+        CONT3=1;
+        CONT4=0;
+        DATA=shuma[j];
+        delay();
+        CONT2=0;
+        CONT3=0;
+        CONT4=1;
+        DATA=shuma[i];
+        delay();
+        if(i<1){
+         i=9;
+         j=j-1;
+         CONT2=1;
+         CONT3=0;
+         CONT4=0;
+         DATA=shuma[k];
+         delay();
+         CONT2=0;
+         CONT3=1;
+         CONT4=0;
+         DATA=shuma[j];
+         delay();
+         CONT2=0;
+         CONT3=0;
+         CONT4=1;
+         DATA=shuma[i];
+         delay();
+        }
+        if(j<1){
+         j=5;
+         k=k-1;  
+         CONT2=1;
+         CONT3=0;
+         CONT4=0;
+         DATA=shuma[k];
+         delay();
+         CONT2=0;
+         CONT3=1;
+         CONT4=0;
+         DATA=shuma[j];
+         delay();
+         CONT2=0;
+         CONT3=0;
+         CONT4=1;
+         DATA=shuma[i];
+         delay();
+        }
+         if(k==0&&j==0&&i==0){
+          BUZZ=1;
+         }  
+      
+      }
+} 
+}
+#pragma CODE_SEG DEFAULT
+
   
 
   
@@ -285,13 +413,14 @@ void main()
 DisableInterrupts;
   INIT_PLL();
   INIT_port();
-  C0NT4=1;
-  DATA=shuma[0];
+  init_key();
  EnableInterrupts;
- for( ; ; ){
+ for( ; ; )
+ {
   
  }
-  
+}
+    
     
 
 
