@@ -1,12 +1,13 @@
----------------------------------------------------*/
+---------------------------------------------------* /
 /************************************************************
 飞翔科技MC9S12XS128汽车电子开发板
 E-mail: 2008f.d@163.com
 淘宝店：http://fxfreefly.taobao.com
 ************************************************************/
 /*---------------------------------------------------------*/
-#include <hidef.h>      /* common defines and macros */
-#include "derivative.h"      /* derivative-specific definitions */
+#include <hidef.h> /* common defines and macros */
+
+#include "derivative.h" /* derivative-specific definitions */
 #define LED_dir DDRB
 #define LED PORTB
 #define BUZZ PORTK_PK5
@@ -29,398 +30,373 @@ E-mail: 2008f.d@163.com
 #define CONT4_dir DDRK_DDRK0
 #define DATA PTP
 #define DATA_dir DDRP
-#define BUS_CLOCK 32000000 
-byte shuma[20]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,       
-                0xbf,0x86,0xdb,0xcf,0xe6,0xed,0xfd,0x87,0xff,0xef};
-                
-                
+#define BUS_CLOCK 32000000
+    byte shuma[20] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f,
+                      0xbf, 0x86, 0xdb, 0xcf, 0xe6, 0xed, 0xfd, 0x87, 0xff, 0xef};
+
 void INIT_PLL(void)  //初始化锁相环
 {
-    CLKSEL &= 0x7f;       
-    PLLCTL &= 0x8F;       
+    CLKSEL &= 0x7f;
+    PLLCTL &= 0x8F;
     CRGINT &= 0xDF;
-    
-    #if(BUS_CLOCK == 40000000) 
-      SYNR = 0x44;
-    #elif(BUS_CLOCK == 32000000)
-      SYNR = 0x43;     
-    #elif(BUS_CLOCK == 24000000)
-      SYNR = 0x42;
-    #endif 
 
-    REFDV = 0x81;         
-    PLLCTL =PLLCTL|0x70;  
+#if (BUS_CLOCK == 40000000)
+    SYNR = 0x44;
+#elif (BUS_CLOCK == 32000000)
+    SYNR = 0x43;
+#elif (BUS_CLOCK == 24000000)
+    SYNR = 0x42;
+#endif
+
+    REFDV = 0x81;
+    PLLCTL = PLLCTL | 0x70;
     asm NOP;
     asm NOP;
-    while(!(CRGFLG&0x08)); 
-    CLKSEL |= 0x80;        
+    while (!(CRGFLG & 0x08))
+        ;
+    CLKSEL |= 0x80;
 }
 
-
-void INIT_port(void)//初始化数码管 
+void INIT_port(void)  //初始化数码管
 {
-  CONT1_dir = 1;
-  CONT2_dir = 1;
-  CONT3_dir = 1;
-  CONT4_dir = 1;
-  CONT1 = 0;
-  CONT2 = 0;
-  CONT3 = 0;
-  CONT4 = 0;
-  DATA_dir = 0xff;
-  DATA = 0x00;
+    CONT1_dir = 1;
+    CONT2_dir = 1;
+    CONT3_dir = 1;
+    CONT4_dir = 1;
+    CONT1 = 0;
+    CONT2 = 0;
+    CONT3 = 0;
+    CONT4 = 0;
+    DATA_dir = 0xff;
+    DATA = 0x00;
 }
-
 
 void init_key(void)  //初始化按键
 {
-     KEY1_dir =0;       
-     KEY2_dir=0;
-     KEY3_dir=0;
-     KEY4_dir=0;
-     PPSH = 0x00;		      
-     PIFH = 0x0f;					
-     PIEH = 0x0f;		      
+    KEY1_dir = 0;
+    KEY2_dir = 0;
+    KEY3_dir = 0;
+    KEY4_dir = 0;
+    PPSH = 0x00;
+    PIFH = 0x0f;
+    PIEH = 0x0f;
 }
 
-
-void Output_Compare()   //初始化输出比较
-{                      
-  TSCR1_TFFCA=1;
-  TSCR1_TEN=1;
-  TIOS=0xff;
-  TCTL1=0x00;
-  TCTL2=0x00;
-  TIE=0x00;
-  TSCR2=0x07;
-  TFLG1=0xff;
-  TFLG2=0xff;
-}
-
-
-
-
-
-
-
-void clock1()//设置ECT时间间隔为1s;
+void Output_Compare()  //初始化输出比较
 {
-  unsigned int i,j;
-  Output_Compare();
-  for(i=0;i<32;i++)
-  {
-    TC0=TCNT+31250;
-  } 
+    TSCR1_TFFCA = 1;
+    TSCR1_TEN = 1;
+    TIOS = 0xff;
+    TCTL1 = 0x00;
+    TCTL2 = 0x00;
+    TIE = 0x00;
+    TSCR2 = 0x07;
+    TFLG1 = 0xff;
+    TFLG2 = 0xff;
 }
 
+void digital_select(int selector)
+{
+    switch (selector)
+    {
+    case 2:
+        CONT2 = 1;
+        CONT3 = 0;
+        CONT4 = 0;
+        break;
+    case 3:
+        CONT2 = 0;
+        CONT3 = 1;
+        CONT4 = 0;
+        break;
+    case 4:
+        CONT2 = 0;
+        CONT3 = 0;
+        CONT4 = 1;
+    }
+}
 
+void clock1()  //设置ECT时间间隔为1s;
+{
+    unsigned int i, j;
+    Output_Compare();
+    for (i = 0; i < 32; i++)
+    {
+        TC0 = TCNT + 31250;
+    }
+}
 
-
-
-
-void delay()   //延时函数
- { 
+void delay()  //延时函数
+{
     unsigned int i;
-    for(i=0;i<5000;i++);
- }
- 
- 
-void  time_jia()    //时间增加
+    for (i = 0; i < 5000; i++)
+        ;
+}
+
+void time_jia()  //时间增加
 {
-  unsigned int i=0,j=0,k=0;
-  clock1();
-  if(TFLG1_C0F==1){
-   CONT2=1;
-   CONT3=0;
-   CONT4=0;
-   DATA=shuma[k];
-   delay();
-   CONT2=0;
-   CONT3=1;
-   CONT4=0;
-   DATA=shuma[j];
-   delay();
-   CONT2=0;
-   CONT3=0;
-   CONT4=1;
-   DATA=shuma[i];
-   delay();
-   i=i+1;
-   if(i>9){
-    j=j+1;
-    i=0;
-    CONT2=1;
-    CONT3=0;
-    CONT4=0;
-    DATA=shuma[k];
-    delay();
-    CONT2=0;
-    CONT3=1;
-    CONT4=0;
-    DATA=shuma[j];
-    delay();
-    CONT2=0;
-    CONT3=0;
-    CONT4=1;
-    DATA=shuma[i];
-    delay();
-   }
-   if(j>6){
-    k=k+1;
-    j=0;
-    CONT2=1;
-    CONT3=0;
-    CONT4=0;
-    DATA=shuma[k];
-    delay();
-    CONT2=0;
-    CONT3=1;
-    CONT4=0;
-    DATA=shuma[j];
-    delay();
-    CONT2=0;
-    CONT3=0;
-    CONT4=1;
-    DATA=shuma[i];
-    delay();
-   }
-  if(k==1){
-    LED=0x7f;
-  }
-  if(k==2){
-    LED=0x3f;
-  } 
- }
-}
- 
- 
-  
-void time_jian(){      //时间减少
-  unsigned int i,j,k;
-  i=10;
-  j=5;
-  k=1;
-  clock1();
-  if(TFLG1_C0F==1)
-  {
-    i=i-1;
-    CONT2=1;
-    CONT3=0;
-    CONT4=0;
-    DATA=shuma[k];
-    delay();
-    CONT2=0;
-    CONT3=1;
-    CONT4=0;
-    DATA=shuma[j];
-    delay();
-    CONT2=0;
-    CONT3=0;
-    CONT4=1;
-    DATA=shuma[i];
-    delay();
-    if(i<1){
-      i=9;
-      j=j-1;
-      CONT2=1;
-      CONT3=0;
-      CONT4=0;
-      DATA=shuma[k];
-      delay();
-      CONT2=0;
-      CONT3=1;
-      CONT4=0;
-      DATA=shuma[j];
-      delay();
-      CONT2=0;
-      CONT3=0;
-      CONT4=1;
-      DATA=shuma[i];
-      delay();
+    unsigned int i = 0, j = 0, k = 0;
+    clock1();
+    if (TFLG1_C0F == 1)
+    {
+        digital_select(2);
+        DATA = shuma[k];
+        delay();
+        digital_select(3);
+        DATA = shuma[j];
+        delay();
+        digital_select(4);
+        DATA = shuma[i];
+        delay();
+        i = i + 1;
+        if (i > 9)
+        {
+            j = j + 1;
+            i = 0;
+            digital_select(2);
+            DATA = shuma[k];
+            delay();
+            digital_select(3);
+            DATA = shuma[j];
+            delay();
+            digital_select(4);
+            DATA = shuma[i];
+            delay();
+        }
+        if (j > 6)
+        {
+            k = k + 1;
+            j = 0;
+            digital_select(2);
+            DATA = shuma[k];
+            delay();
+            digital_select(3);
+            DATA = shuma[j];
+            delay();
+            digital_select(4)
+                DATA = shuma[i];
+            delay();
+        }
+        if (k == 1)
+        {
+            LED = 0x7f;
+        }
+        if (k == 2)
+        {
+            LED = 0x3f;
+        }
     }
-    if(j<1){
-      j=5;
-      k=k-1;  
-      CONT2=1;
-      CONT3=0;
-      CONT4=0;
-      DATA=shuma[k];
-      delay();
-      CONT2=0;
-      CONT3=1;
-      CONT4=0;
-      DATA=shuma[j];
-      delay();
-      CONT2=0;
-      CONT3=0;
-      CONT4=1;
-      DATA=shuma[i];
-      delay();
-    }
-    if(k==0&&j==0&&i==0){
-    BUZZ=1;
-    } 
-  }
 }
 
+void time_jian()
+{  //时间减少
+    unsigned int i, j, k;
+    i = 10;
+    j = 5;
+    k = 1;
+    clock1();
+    if (TFLG1_C0F == 1)
+    {
+        i = i - 1;
+        digital_select(2);
+        DATA = shuma[k];
+        delay();
+        digital_select(3);
+        DATA = shuma[j];
+        delay();
+        digital_select(4);
+        DATA = shuma[i];
+        delay();
+        if (i < 1)
+        {
+            i = 9;
+            j = j - 1;
+            digital_select(2);
+            DATA = shuma[k];
+            delay();
+            digital_select(3);
+            DATA = shuma[j];
+            delay();
+            digital_select(4);
+            DATA = shuma[i];
+            delay();
+        }
+        if (j < 1)
+        {
+            j = 5;
+            k = k - 1;
+            digital_select(2);
+            DATA = shuma[k];
+            delay();
+            digital_select(3);
+            DATA = shuma[j];
+            delay();
+            digital_select(4);
+            DATA = shuma[i];
+            delay();
+        }
+        if (k == 0 && j == 0 && i == 0)
+        {
+            BUZZ = 1;
+        }
+    }
+}
 
-
- 
 #pragma CODE_SEG __NEAR_SEG NON_BANKED
-interrupt void PTH_inter(void) 
+interrupt void PTH_inter(void)
 {
-    unsigned int i,j,k;
-   if(PIFH != 0) //判断中断标志    
-   {
-      PIFH = 0xff;//清除中断标志     
-      if(KEY1 == 0)         
-      {
-         time_jia();
-      }
-      if(KEY2 == 0) 
-      {
-       time_jian();
-      }
-      if(KEY3 == 0) {
-         i=i+1;
-         CONT2=1;
-         CONT3=0;
-         CONT4=0;
-         DATA=shuma[k];
-         CONT2=0;
-         CONT3=1;
-         CONT4=0;
-         DATA=shuma[j];
-         CONT2=0;
-         CONT3=0;
-         CONT4=1;
-         DATA=shuma[i];
-          if(i>9){
-          j=j+1;
-          i=0;
-          CONT2=1;
-          CONT3=0;
-          CONT4=0;
-          DATA=shuma[k];
-          delay();
-          CONT2=0;
-          CONT3=1;
-          CONT4=0;
-          DATA=shuma[j];
-          delay();
-          CONT2=0;
-          CONT3=0;
-          CONT4=1;
-          DATA=shuma[i];
-          delay();
-          }
-          if(j>6){
-          k=k+1;
-          j=0;
-          CONT2=1;
-          CONT3=0;
-          CONT4=0;
-          DATA=shuma[k];
-          delay();
-          CONT2=0;
-          CONT3=1;
-          CONT4=0;
-          DATA=shuma[j];
-          delay();
-          CONT2=0;
-          CONT3=0;
-          CONT4=1;
-          DATA=shuma[i];
-          delay();
-          }
-          if(k==1){
-           LED=0x7f;
-          }
-          if(k==2){
-           LED=0x3f;
-          }
-      }
-          
-      if(KEY4 == 0){
-        i=i-1;
-        CONT2=1;
-        CONT3=0;
-        CONT4=0;
-        DATA=shuma[k];
-        delay();
-        CONT2=0;
-        CONT3=1;
-        CONT4=0;
-        DATA=shuma[j];
-        delay();
-        CONT2=0;
-        CONT3=0;
-        CONT4=1;
-        DATA=shuma[i];
-        delay();
-        if(i<1){
-         i=9;
-         j=j-1;
-         CONT2=1;
-         CONT3=0;
-         CONT4=0;
-         DATA=shuma[k];
-         delay();
-         CONT2=0;
-         CONT3=1;
-         CONT4=0;
-         DATA=shuma[j];
-         delay();
-         CONT2=0;
-         CONT3=0;
-         CONT4=1;
-         DATA=shuma[i];
-         delay();
+    unsigned int i, j, k;
+    if (PIFH != 0)  //判断中断标志
+    {
+        PIFH = 0xff;  //清除中断标志
+        if (KEY1 == 0)
+        {
+            time_jia();  //
         }
-        if(j<1){
-         j=5;
-         k=k-1;  
-         CONT2=1;
-         CONT3=0;
-         CONT4=0;
-         DATA=shuma[k];
-         delay();
-         CONT2=0;
-         CONT3=1;
-         CONT4=0;
-         DATA=shuma[j];
-         delay();
-         CONT2=0;
-         CONT3=0;
-         CONT4=1;
-         DATA=shuma[i];
-         delay();
+        if (KEY2 == 0)
+        {
+            time_jian();
         }
-         if(k==0&&j==0&&i==0){
-          BUZZ=1;
-         }  
-      
-      }
-} 
+        if (KEY3 == 0)
+        {
+            i = i + 1;
+            CONT2 = 1;
+            CONT3 = 0;
+            CONT4 = 0;
+            DATA = shuma[k];
+            CONT2 = 0;
+            CONT3 = 1;
+            CONT4 = 0;
+            DATA = shuma[j];
+            CONT2 = 0;
+            CONT3 = 0;
+            CONT4 = 1;
+            DATA = shuma[i];
+            if (i > 9)
+            {
+                j = j + 1;
+                i = 0;
+                CONT2 = 1;
+                CONT3 = 0;
+                CONT4 = 0;
+                DATA = shuma[k];
+                delay();
+                CONT2 = 0;
+                CONT3 = 1;
+                CONT4 = 0;
+                DATA = shuma[j];
+                delay();
+                CONT2 = 0;
+                CONT3 = 0;
+                CONT4 = 1;
+                DATA = shuma[i];
+                delay();
+            }
+            if (j > 6)
+            {
+                k = k + 1;
+                j = 0;
+                CONT2 = 1;
+                CONT3 = 0;
+                CONT4 = 0;
+                DATA = shuma[k];
+                delay();
+                CONT2 = 0;
+                CONT3 = 1;
+                CONT4 = 0;
+                DATA = shuma[j];
+                delay();
+                CONT2 = 0;
+                CONT3 = 0;
+                CONT4 = 1;
+                DATA = shuma[i];
+                delay();
+            }
+            if (k == 1)
+            {
+                LED = 0x7f;
+            }
+            if (k == 2)
+            {
+                LED = 0x3f;
+            }
+        }
+
+        if (KEY4 == 0)
+        {
+            i = i - 1;
+            CONT2 = 1;
+            CONT3 = 0;
+            CONT4 = 0;
+            DATA = shuma[k];
+            delay();
+            CONT2 = 0;
+            CONT3 = 1;
+            CONT4 = 0;
+            DATA = shuma[j];
+            delay();
+            CONT2 = 0;
+            CONT3 = 0;
+            CONT4 = 1;
+            DATA = shuma[i];
+            delay();
+            if (i < 1)
+            {
+                i = 9;
+                j = j - 1;
+                CONT2 = 1;
+                CONT3 = 0;
+                CONT4 = 0;
+                DATA = shuma[k];
+                delay();
+                CONT2 = 0;
+                CONT3 = 1;
+                CONT4 = 0;
+                DATA = shuma[j];
+                delay();
+                CONT2 = 0;
+                CONT3 = 0;
+                CONT4 = 1;
+                DATA = shuma[i];
+                delay();
+            }
+            if (j < 1)
+            {
+                j = 5;
+                k = k - 1;
+                CONT2 = 1;
+                CONT3 = 0;
+                CONT4 = 0;
+                DATA = shuma[k];
+                delay();
+                CONT2 = 0;
+                CONT3 = 1;
+                CONT4 = 0;
+                DATA = shuma[j];
+                delay();
+                CONT2 = 0;
+                CONT3 = 0;
+                CONT4 = 1;
+                DATA = shuma[i];
+                delay();
+            }
+            if (k == 0 && j == 0 && i == 0)
+            {
+                BUZZ = 1;
+            }
+        }
+    }
 }
 #pragma CODE_SEG DEFAULT
 
-  
-
-  
 void main()
 {
-DisableInterrupts;
-  INIT_PLL();
-  INIT_port();
-  init_key();
- EnableInterrupts;
- for( ; ; )
- {
-  
- }
+    DisableInterrupts;
+    INIT_PLL();
+    INIT_port();
+    init_key();
+    EnableInterrupts;
+    for (;;)
+    {
+    }
 }
-    
-    
-
-
